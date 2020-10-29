@@ -3,6 +3,9 @@ import { Game } from "./game";
 
 
 export async function init() {
+	let messageEl = document.getElementById("message");
+	insertLoadingText(messageEl);
+
 	await Promise.all([
 		faceapi.nets.tinyFaceDetector.loadFromUri("./models"),
 		faceapi.nets.faceLandmark68Net.loadFromUri("./models"),
@@ -10,9 +13,16 @@ export async function init() {
 		faceapi.nets.faceExpressionNet.loadFromUri("./models"),
 	]);
 
-	const stream = await navigator.mediaDevices.getUserMedia({
-		video: true
-	});
+	let stream = null;
+	try {
+		stream = await navigator.mediaDevices.getUserMedia({
+			video: true
+		});
+	} catch (e) {
+		insertErrorText(messageEl, "Can't fetch your webcam :(");
+		return;
+	}
+	messageEl.style.display = "none";
 
 	const videoEl = document.getElementById('video') as HTMLVideoElement;
 	videoEl.srcObject = stream;
@@ -86,6 +96,31 @@ export async function init() {
 
 }
 
+function insertLoadingText(container: HTMLElement) {
+	let text = "loading...";
+	removeChildren(container);
+	container.classList.add("loading");
+	for (let letter of text) {
+		let element = document.createElement("span");
+		element.textContent = letter;
+		element.classList.add("loading__letter");
+		container.appendChild(element);
+	}
+}
+
+function insertErrorText(container: HTMLElement, message: string) {
+	removeChildren(container);
+	container.classList.remove("loading");
+	container.classList.add("error");
+	removeChildren(container);
+	container.textContent = message;
+}
+
+function removeChildren(container: HTMLElement) {
+	while (container.firstChild) {
+		container.removeChild(container.firstChild);
+	}
+}
 
 
 // TODO: remove
