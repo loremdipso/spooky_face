@@ -1,11 +1,27 @@
 import * as faceapi from "face-api.js";
 import { DEBUG, drawPoint, drawRect, Point, Rect } from "./utils";
 
+interface IEyeLocation extends Point {
+	radius: number;
+}
+
+interface IEyeConfig {
+	xOffset: number,
+	yOffset: number,
+	includeOffset: boolean
+}
+
 export class Game {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
 	spookyImage: HTMLImageElement;
 	nose: Point;
+
+	leftEyePosition: IEyeLocation;
+	rightEyePosition: IEyeLocation;
+
+	rightEyeTarget: IEyeLocation;
+	leftEyeTarget: IEyeLocation;
 
 	// =============== API ===============
 	constructor(private siblingEl: Element) {
@@ -22,6 +38,7 @@ export class Game {
 		this.resizeCanvas();
 		this.loadImage();
 
+		this.canvas.classList.add("spooky");
 		if (DEBUG) {
 			this.canvas.style.backgroundColor = "rgba(0,255,0,0.2)";
 		} else {
@@ -34,6 +51,7 @@ export class Game {
 		image.src = `images/spooky.svg`
 		image.onload = () => {
 			this.spookyImage = image;
+			this.setupEyes();
 		};
 
 		return { image: image, is_loaded: false };
@@ -47,6 +65,7 @@ export class Game {
 		const cb = () => {
 			let delta = Date.now() - lastUpdate;
 			lastUpdate = Date.now();
+			this.update(delta);
 			this.draw();
 			window.requestAnimationFrame(cb);
 		};
@@ -61,6 +80,29 @@ export class Game {
 		this.nose = this.getCenter(landmarks.getNose());
 	}
 
+	private update(delta: number) {
+		this.moveEyeTowardsPoint(delta, this.leftEyePosition, this.leftEyeTarget);
+		this.moveEyeTowardsPoint(delta, this.rightEyePosition, this.rightEyeTarget);
+	}
+
+	private moveEyeTowardsPoint(delta: number, eyePosition: IEyeLocation, target: IEyeLocation) {
+		let velocity = 1;
+		let dx = target.x - eyePosition.x;
+		let dy = target.y - eyePosition.y;
+
+		// NOTE: this way of calculating x/y velocity is a little problematic
+		// when we're already there. It ends up shaking the eyes. Which normally I'd remove,
+		// but it actually looks quite spooky, so I'm keeping it in.
+
+		let angle = Math.atan2(dy, dx);
+		let xVelocity = velocity * Math.cos(angle);
+		let yVelocity = velocity * Math.sin(angle);
+
+
+		eyePosition.x += xVelocity;
+		eyePosition.y += yVelocity;
+	}
+
 	private draw() {
 		this.clear();
 
@@ -70,18 +112,33 @@ export class Game {
 
 			this.context.drawImage(this.spookyImage, 0, 0, canvasWidth, canvasHeight);
 
-			let pupilRadius = 30;
-			let eyeRadius = 80;
+			this.drawEye(this.leftEyePosition);
+			this.drawEye(this.rightEyePosition);
 
-			// left eye
-			this.drawEye({ xOffset: -165, yOffset: -135, eyeRadius, pupilRadius });
-
-			// right eye
-			this.drawEye({ xOffset: 140, yOffset: -100, eyeRadius, pupilRadius });
+			this.leftEyeTarget = this.findEyeTarget(this.getLeftEyeConfig(true));
+			this.rightEyeTarget = this.findEyeTarget(this.getRightEyeConfig(true));
 		}
 	}
 
-	private drawEye({ xOffset, yOffset, eyeRadius, pupilRadius }: { xOffset: number, yOffset: number, eyeRadius: number, pupilRadius: number }) {
+	private getLeftEyeConfig(includeOffset: boolean): IEyeConfig {
+		return { xOffset: -165, yOffset: -135, includeOffset };
+	}
+
+	private getRightEyeConfig(includeOffset: boolean): IEyeConfig {
+		return { xOffset: 140, yOffset: -100, includeOffset };
+	}
+
+	private drawEye(position: IEyeLocation) {
+		drawPoint(this.context, position, "black", position.radius);
+	}
+
+	private findEyeTarget({
+		xOffset,
+		yOffset,
+		includeOffset
+	}: IEyeConfig): IEyeLocation {
+		let pupilRadius = 30;
+		let eyeRadius = 80;
 		let canvasWidth = this.canvas.width;
 		let canvasHeight = this.canvas.height;
 		let imageWidth = this.spookyImage.width;
@@ -100,8 +157,7 @@ export class Game {
 
 		let pupilCenter = { x: eyeCenter.x, y: eyeCenter.y };
 
-		if (this.nose) {
-			console.log(pupilRadius);
+		if (this.nose && includeOffset) {
 			let eyeSize = 2 * (eyeRadius - pupilRadius);
 
 			// get delta from nose position to center of image, then scale it from
@@ -111,10 +167,10 @@ export class Game {
 				y: ((this.nose.y - imageHeight / 2) / canvasHeight) * eyeSize,
 			};
 
-			pupilCenter.x += nosePosition.x;
-			pupilCenter.y += nosePosition.y;
+			// subtracting here to invert, because of how cameras work
+			pupilCenter.x -= nosePosition.x;
+			pupilCenter.y -= nosePosition.y;
 		}
-
 
 		// pupil
 		if (DEBUG) {
@@ -122,14 +178,29 @@ export class Game {
 		}
 
 		// eye
-		drawPoint(this.context, { x: pupilCenter.x, y: pupilCenter.y }, "black", pupilRadius);
-
+		return {
+			x: pupilCenter.x,
+			y: pupilCenter.y,
+			radius: pupilRadius
+		};
 	}
 
 	// =============== utils ===============
 	private resizeCanvas() {
 		this.canvas.width = this.siblingEl.clientWidth;
 		this.canvas.height = this.siblingEl.clientHeight;
+
+		this.setupEyes();
+	}
+
+	private setupEyes() {
+		if (this.spookyImage) {
+			this.leftEyePosition = this.findEyeTarget(this.getLeftEyeConfig(false));
+			this.rightEyePosition = this.findEyeTarget(this.getRightEyeConfig(false));
+
+			this.leftEyeTarget = this.findEyeTarget(this.getLeftEyeConfig(false));
+			this.rightEyeTarget = this.findEyeTarget(this.getRightEyeConfig(false));
+		}
 	}
 
 	// =============== geometry ===============
