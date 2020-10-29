@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Face Game</title>
+		<title>Spooky Face</title>
 
 		<style>
 			* {
@@ -23,6 +23,7 @@
 					#267871
 				); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 			}
+
 			.videoGroup {
 				position: relative;
 				text-align: center;
@@ -32,14 +33,20 @@
 				position: absolute;
 				top: 0;
 				left: 50%;
-				transform: translate(-50%, 0);
+				transform: translate(-50%, 0); /* to center align the canvas overlay */
 			}
 
-			#video,
-			.emotions,
-			.header {
-				max-width: 650px;
+			#video {
 				width: 100%;
+			}
+
+			video,
+			canvas {
+				opacity: 0;
+			}
+
+			canvas.spooky {
+				opacity: 1;
 			}
 
 			.header > h1 {
@@ -47,48 +54,13 @@
 				padding-top: 10px;
 				margin-top: -10px;
 			}
-
-			.header > p {
-				padding: 10px;
-				margin: 0px;
-			}
-
-			.header,
-			.emotions {
-				background-color: #f9f9f9;
-			}
-
-			.header {
-				margin-left: auto;
-				margin-right: auto;
-			}
-
-			.emotions {
-				margin-left: auto;
-				margin-right: auto;
-				flex-direction: row;
-				position: relative;
-				table-layout: fixed;
-				text-align: center;
-				margin-top: -10px;
-				vertical-align: center;
-			}
-
-			.emotions td {
-				padding-top: 10px;
-				padding-bottom: 10px;
-			}
-
-			.emotions td + td {
-				border-left: 2px solid black;
-			}
 		</style>
 	</head>
 
 	<body>
 		<!-- Thanks Tim Holman! https://github.com/tholman/github-corners -->
 		<a
-			href="https://github.com/loremdipso/face_game"
+			href="https://github.com/loremdipso/spooky_face"
 			class="github-corner"
 			aria-label="View source on GitHub"
 			><svg
@@ -146,30 +118,9 @@
 			}
 		</style>
 
-		<div class="header">
-			<h1>Face Trainer</h1>
-			<p>
-				Are you having a hard time expressing human emotions? Well, look no
-				further! With the help of
-				<a
-					href="https://justadudewhohacks.github.io/face-api.js/docs/index.html"
-					>face-api.js</a
-				>, I've developed a tool to help you master those pesky emotions.
-			</p>
-		</div>
-
 		<div class="videoGroup">
 			<video id="video" autoplay></video>
 		</div>
-
-		<table class="emotions">
-			<tr>
-				<td>surprised</td>
-				<td>happy</td>
-				<td>fearful</td>
-				<td>angry</td>
-			</tr>
-		</table>
 
 		<script src="bundle.js"></script>
 	</body>
