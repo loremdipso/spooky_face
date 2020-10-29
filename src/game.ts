@@ -58,7 +58,6 @@ export class Game {
 	}
 
 	public start() {
-		// TODO: use the good animation frame stuff
 		let lastUpdate = Date.now();
 
 		// TODO: cap the framerate on this
@@ -172,8 +171,8 @@ export class Game {
 			// get delta from nose position to center of image, then scale it from
 			// the image's dimensions into that of the usable eye space (eyeSize - pupilSize)
 			let nosePosition = {
-				x: ((this.nose.x - imageWidth / 2) / canvasWidth) * eyeSize,
-				y: ((this.nose.y - imageHeight / 2) / canvasHeight) * eyeSize,
+				x: ((this.nose.x - canvasWidth / 2) / canvasWidth) * eyeSize,
+				y: ((this.nose.y - canvasHeight / 2) / canvasHeight) * eyeSize,
 			};
 
 			pupilCenter.y += nosePosition.y;
