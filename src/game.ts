@@ -144,7 +144,16 @@ export class Game {
 		let imageWidth = this.spookyImage.width;
 		let imageHeight = this.spookyImage.height;
 
-		let scale = canvasHeight / imageHeight;
+		let scale = 0;
+		let imageRatio = imageHeight / imageWidth;
+		let canvasRatio = canvasHeight / canvasWidth;
+
+		if (imageRatio > canvasRatio) {
+			scale = canvasHeight / imageHeight;
+		} else {
+			scale = canvasWidth / imageWidth;
+		}
+
 		pupilRadius *= scale;
 		eyeRadius *= scale;
 
@@ -167,9 +176,10 @@ export class Game {
 				y: ((this.nose.y - imageHeight / 2) / canvasHeight) * eyeSize,
 			};
 
+			pupilCenter.y += nosePosition.y;
+
 			// subtracting here to invert, because of how cameras work
 			pupilCenter.x -= nosePosition.x;
-			pupilCenter.y -= nosePosition.y;
 		}
 
 		// pupil
