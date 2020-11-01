@@ -1,4 +1,5 @@
 export const DEBUG = false;
+export const RED_EYES_DURATION = 500; // ms
 
 export interface Point {
 	x: number,

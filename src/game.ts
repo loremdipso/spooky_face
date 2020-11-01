@@ -1,5 +1,6 @@
 import * as faceapi from "face-api.js";
-import { DEBUG, drawPoint, drawRect, Point, Rect } from "./utils";
+import { DEBUG, drawPoint, drawRect, Point, Rect, RED_EYES_DURATION } from "./utils";
+
 
 interface IEyeLocation extends Point {
 	radius: number;
@@ -15,13 +16,15 @@ export class Game {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
 	spookyImage: HTMLImageElement;
-	nose: Point;
 
 	leftEyePosition: IEyeLocation;
 	rightEyePosition: IEyeLocation;
 
 	rightEyeTarget: IEyeLocation;
 	leftEyeTarget: IEyeLocation;
+
+	nose: Point;
+	timeOfLastKnownNose: number = 0;
 
 	// =============== API ===============
 	constructor(private siblingEl: Element) {
@@ -53,8 +56,6 @@ export class Game {
 			this.spookyImage = image;
 			this.setupEyes();
 		};
-
-		return { image: image, is_loaded: false };
 	}
 
 	public start() {
@@ -77,6 +78,7 @@ export class Game {
 		expressions: faceapi.FaceExpressions
 	) {
 		this.nose = this.getCenter(landmarks.getNose());
+		this.timeOfLastKnownNose = Date.now();
 	}
 
 	private update(delta: number) {
@@ -128,7 +130,11 @@ export class Game {
 	}
 
 	private drawEye(position: IEyeLocation) {
-		drawPoint(this.context, position, "black", position.radius);
+		let color = "black";
+		if (Date.now() - this.timeOfLastKnownNose < RED_EYES_DURATION) {
+			color = "red";
+		}
+		drawPoint(this.context, position, color, position.radius);
 	}
 
 	private findEyeTarget({
