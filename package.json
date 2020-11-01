@@ -24,8 +24,8 @@
 		"dev": "npm run webpack-dev-server",
 		"start": "npm run dev",
 		"build": "npm run build:prod",
-		"build:dev": "npm run webpack -- --env.mode development",
-		"build:prod": "npm run webpack -- --env.mode production && cp -R src/public/* docs"
+		"build:dev": "rm -rf docs && mkdir docs && cp -R src/public/* docs && npm run webpack -- --env.mode development",
+		"build:prod": "rm -rf docs && mkdir docs && cp -R src/public/* docs && npm run webpack -- --env.mode production"
 	},
 	"keywords": [],
 	"author": "",
