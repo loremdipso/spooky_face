@@ -13,18 +13,18 @@ interface IEyeConfig {
 }
 
 export class Game {
-	canvas: HTMLCanvasElement;
-	context: CanvasRenderingContext2D;
-	spookyImage: HTMLImageElement;
+	private canvas: HTMLCanvasElement;
+	private context: CanvasRenderingContext2D;
+	private spookyImage: HTMLImageElement;
 
-	leftEyePosition: IEyeLocation;
-	rightEyePosition: IEyeLocation;
+	private leftEyePosition: IEyeLocation;
+	private rightEyePosition: IEyeLocation;
 
-	rightEyeTarget: IEyeLocation;
-	leftEyeTarget: IEyeLocation;
+	private rightEyeTarget: IEyeLocation;
+	private leftEyeTarget: IEyeLocation;
 
-	nose: Point;
-	timeOfLastKnownNose: number = 0;
+	private nose: Point;
+	private timeOfLastKnownNose: number = 0;
 
 	// =============== API ===============
 	constructor(private siblingEl: Element) {
@@ -87,6 +87,11 @@ export class Game {
 	}
 
 	private moveEyeTowardsPoint(delta: number, eyePosition: IEyeLocation, target: IEyeLocation) {
+		// TODO: update types so we know eyePosition might not be valid right out the gate
+		if (!eyePosition || !target) {
+			return;
+		}
+
 		let velocity = 1;
 		let dx = target.x - eyePosition.x;
 		let dy = target.y - eyePosition.y;
